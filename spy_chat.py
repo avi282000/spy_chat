@@ -1,23 +1,74 @@
 #Spy_chat
 from os import system,name          #For defining the "clear screen" function
-#from PIL import Image                   .........................Failed last minute attempt at steganography
-#def genData(data):
-#	newd=[]
-#	for i in data:
-#		newd.append(format(ord(i),"08b"))
-#	return newd
-#def modPix(pix,data):
-#	datalist=genData(data)
-#	lendata=len(datalist)
-#	imdata=iter(pix)
-#	for i in range(lendata):
-#		pix = [value for value in imdata.__next__()[:3] + imdata.__next__()[:3] + imdata.__next__()[:3]] 
-#	for j in range(0, 8): 
-#		if (datalist[i][j]=='0') and (pix[j]% 2 != 0):  
-#			if (pix[j]% 2 != 0): 
- #         		pix[j] -= 1
-#		elif (datalist[i][j] == '1') and (pix[j] % 2 == 0): 
-#			pix[j] -= 1
+from PIL import Image
+def genData(data):					#For converting the data into 8-Bit binary form using the ASCII value of its characters
+	newd=[]							
+	for i in data:
+		newd.append(format(ord(i),"08b"))			#Just a list of all the binary codes of the given data
+	return newd
+def modpix(pix,data):
+	data_list=genData(data)
+	len_data=len(datalist)
+	imdata=iter(pix)
+	for i in range(lendata):
+		pix=[value for value in imdata.__next__()[:3]+imdata.__next__()[:3]+imdata.__next__()[:3]]
+		for j in range(0,8):
+			if(data_list[i][j]=="0") and (pix[j]%2!=0):
+				if(pix[j]%2!=0):
+					pix[j]-=1
+			elif(data_list[i][j]=="1") and (pix[j]%2==0):
+				pix[j]-=1
+			if(i==len_data-1):
+				if(pix[-1]%2==0):
+					pix[-1]-=1
+				else:
+					if(pix[-1]%2!=0):
+						pix[-1]-=1
+				pix=tuple(pix)
+				yield pix[0:3]
+				yield pix[3:6]
+				yield pix[6:9]
+
+def encode_enc(newimg,data):
+	w=newimg.size[0]
+	(x,y)=(0,0)
+	for pixel in modPix(newimg.genData(),data):
+		newimg.putpixel((x,y),pixel)
+		if(x==w-1):
+			x=0
+			y+=1
+		else:
+			x+=1
+
+def encode():
+	img=input("Enter the image's name (extension included): ")
+	image=Image.open(img,"r")
+	msg=input("Enter the message: ")
+	if(len(msg)==0):
+		raise ValueError("No message found!")
+	newimg=image.copy()
+	encode_enc(newimg,msg)
+	new_img_name=input("Enter the name of the new image (extension included): ")
+	newimg.save(new_img_name,str(new_img_name.split(".")[1].upper()))
+
+def decode():
+	img=input("Enter the image's name(extension included): ")
+	image=Image.open(img,"r")
+	data=""
+	imgdata=iter(image.getdata())
+	while(True):
+		pixels=[value for value in imgdata.__next__()[:3]+imgdata.__next__()[:3]+imgdata.__next__()[:3]]
+		bin_str=""
+		for i in pixels[:8]:
+			if(i%2==0):
+				bin_str+="0"
+			else:
+				bin_str+="1"
+		data+=chr(int(binstr,2))
+		if(pixels[-1]%2!=0):
+			print("Decoded word:")
+			return data
+
 def clear():
 	if name=="nt":
 		_=system("cls")
@@ -58,7 +109,7 @@ name=users.spy_cred("oiugytcfxdcfytugihkbvjgjkn","ertfyguhiokplnvghjbks",8794653
 print("Greetings fellow traveller!")		
 phrase=input("Enter the phrase here:")			#The phrase
 if phrase=="peaceThroughpower":
-	user=input("Do you wish to start a new jorney with us or are you a know aquiantance of us already? (Answer '1' or '2',respectively,for either):")
+	user=input("Do you wish to start a new jorney with us or are you a known aquiantance of us already? (Answer '1' or '2',respectively,for either):")
 
 	if user=="1":													#Creating a new user
 		print("We are certainly pleased!")
@@ -392,12 +443,14 @@ if phrase=="peaceThroughpower":
 				sleep(3)
 				clear()
 				quit()
-		msg_rqst=input("Do you wish to send a message to your new friend? (It will be secure) (y/n) ")
+		msg_rqst=input("Do you wish to send a message to your new friend or read a message he has sent to you? (It will be secure) (Type in 1 or 2,for each option,respectively) ")
 		if msg_rqst.upper()=="Y":
-			msg=input("Type your message here: ")
+			encode()
+		elif msg_rqst.upper()=="N":
+			decode()
 	else:
 
 		print("Goodbye!")
 		quit()		
 else:
-	clear()
+	clear() 
